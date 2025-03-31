@@ -40,13 +40,14 @@ Matrix Matrix::operator+(const Matrix& other)
     Matrix result(m_rows, m_cols);
     const int thread_num = omp_get_max_threads();
     const int total_elements = m_rows * m_cols;
-    const int load = total_elements / thread_num;  // Manual load balancing
+    const int load = total_elements / thread_num;
+    int remainder = total_elements % thread_num;
 
     #pragma omp parallel
     {
         int thread_id = omp_get_thread_num();
-        int start = thread_id * load;
-        int end = (thread_id == thread_num - 1) ? total_elements : start + load; // Last thread handles remainder
+        int start = thread_id * load + std::min(thread_id, remainder);
+        int end = start + load + (thread_id < remainder ? 1 : 0);
 
         for (int i = start; i < end; i++) {
             result.m_data[i] = this->m_data[i] + other.m_data[i];  // Row-major access
