@@ -9,7 +9,6 @@ void split_array_indice(int n_size, int p_processor, int k, int *start_k, int *e
     int r = n_size % p_processor;
     *start_k = k * q + (k < r ? k : r);
     *end_k = *start_k + q - 1 + (k < r ? 1 : 0);
-    // printf("Processor %d: Start index = %d, End index = %d\n", k, *start_k, *end_k);
 }
 
 
@@ -36,11 +35,9 @@ int binary_tree_reduction(int p_processor_size, int rank, int local_sum) {
                 int recv_val;
                 MPI_Recv(&recv_val, 1, MPI_INT, rank + level, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                 local_sum += recv_val;
-                printf("Rank %d received from %d\n", rank, rank + level);
             }
         } else {
             MPI_Send(&local_sum, 1, MPI_INT, rank - level, 0, MPI_COMM_WORLD);
-            printf("Rank %d sending to rank %d\n", rank, rank - level);
             break;
         }
     }
@@ -74,7 +71,7 @@ int main(int argc, char** argv) {
             MPI_Abort(MPI_COMM_WORLD, 1);
         }
         for (int i = 0; i < n; i++) {
-            full_array[i] = i + 1;
+            full_array[i] = rand() % 10;
         }
     }
 
@@ -104,7 +101,6 @@ int main(int argc, char** argv) {
 
     int local_sum_value = local_sum(local_array, 0, local_size - 1);
     int global_sum = binary_tree_reduction(size, rank, local_sum_value);
-    printf("Local sum %d\n", local_sum_value);
 
     if (rank == 0) {
         printf("Final sum is: %d\n", global_sum);
